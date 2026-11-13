@@ -203,6 +203,10 @@ function handleFile(input) {
       if (!ws) { alert('Aba "2026" não encontrada.'); return; }
       const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
       const header = rows[0];
+      // Colunas por nome de cabeçalho (a planilha ganhou a coluna "cluster" e deslocou as demais)
+      const _hn=s=>String(s==null?'':s).replace(/\s+/g,' ').trim().toLowerCase();
+      const _hc=(n,fb)=>{const i=header.findIndex(h=>_hn(h)===n);return i>=0?i:fb;};
+      const cT=_hc('franquia/lp',1), cA=_hc('ativa',2), cG=_hc('gs',3), cL=_hc('loja',4);
       const meses = [], dataset = {};
       for (let i = 0; i < header.length; i++) {
         const h = header[i];
@@ -224,13 +228,13 @@ function handleFile(input) {
         let crescRede=null,sss=null;
         for (let ri=1; ri<rows.length; ri++) {
           const r=rows[ri]; if(!r) continue;
-          if(!r[1]&&!r[4]&&crescCol<r.length){const v=r[crescCol];if(typeof v==='number'&&crescRede===null)crescRede=v;}
-          if(r[4]==='SSS'&&crescCol<r.length){const v=r[crescCol];if(typeof v==='number')sss=v;}
+          if(!r[cT]&&!r[cL]&&crescCol<r.length){const v=r[crescCol];if(typeof v==='number'&&crescRede===null)crescRede=v;}
+          if(r[cL]==='SSS'&&crescCol<r.length){const v=r[crescCol];if(typeof v==='number')sss=v;}
         }
         const lojas=[];
         for (let ri=1; ri<rows.length; ri++) {
-          const r=rows[ri]; if(!r||!r[1])break; if(r[2]!=='sim')continue;
-          const nome=(r[4]||'').toString().replace(/^RAHRA\s*/i,'').trim();
+          const r=rows[ri]; if(!r||!r[cT])break; if(r[cA]!=='sim')continue;
+          const nome=(r[cL]||'').toString().replace(/^RAHRA\s*/i,'').trim();
           const real=+r[real26Col]||0,meta=+r[metaCol]||0,r25=+r[real25Col]||0;
           let cresc=crescCol<r.length?r[crescCol]:null,pa=paCol!==null?r[paCol]:null;
           const nv26=nv26Col!==null?Math.round(+r[nv26Col]||0):0;
@@ -238,7 +242,7 @@ function handleFile(input) {
           const nv25=nv25Col!==null?Math.round(+r[nv25Col]||0):0;
           const tm25=tm25Col!==null?(+r[tm25Col]||0):0;
           if(typeof pa==='string')pa=null; if(typeof cresc==='string')cresc=null;
-          lojas.push({tipo:r[1],gs:r[3]||'N/D',nome,
+          lojas.push({tipo:r[cT],gs:r[cG]||'N/D',nome,
             meta:+meta.toFixed(2),real:+real.toFixed(2),r25:+r25.toFixed(2),
             pct:meta>0?+(real/meta*100).toFixed(1):0,
             cresc:typeof cresc==='number'?+(cresc*100).toFixed(1):null,
